@@ -18,11 +18,21 @@ public class DraggableObject : MonoBehaviourPunCallbacks,IPunOwnershipCallbacks
     float posY;
     float deltaY;
 
+    [SerializeField]
+    Define.ObjectState state = Define.ObjectState.Idle;
+    public Define.ObjectState State
+    {
+        get { return state; }
+    }
+
     private void Start()
     {
         PhotonNetwork.AddCallbackTarget(this);
         outline = GetComponent<Outline>();
+        Managers.Input.keyAction -= OnKeyEvent;
+        Managers.Input.keyAction += OnKeyEvent;
     }
+
     private void OnDestroy()
     {
         PhotonNetwork.RemoveCallbackTarget(this);
@@ -33,8 +43,11 @@ public class DraggableObject : MonoBehaviourPunCallbacks,IPunOwnershipCallbacks
     }
     void OnMouseDown()
     {
+        if (state == Define.ObjectState.Pickked || 
+            state == Define.ObjectState.Lock) return;
         base.photonView.RequestOwnership();
-        GetComponent<Rigidbody>().isKinematic = true;
+        RequestRPCChangeState(Define.ObjectState.Pickked);
+
         startPos = transform.position;
         dist = targetCamera.WorldToScreenPoint(transform.position);
         posX = Input.mousePosition.x - dist.x;
@@ -50,6 +63,9 @@ public class DraggableObject : MonoBehaviourPunCallbacks,IPunOwnershipCallbacks
     //}
     private void OnMouseDrag()
     {
+        if (state == Define.ObjectState.Lock) return;
+        if (state != Define.ObjectState.Pickked || !photonView.Owner.IsLocal) return;
+
         if (targetCamera.GetComponent<CameraController>().curTargetingObj == this.gameObject)
         {
             deltaY += 0.1f;
@@ -76,11 +92,12 @@ public class DraggableObject : MonoBehaviourPunCallbacks,IPunOwnershipCallbacks
     }
     private void OnMouseUp()
     {
-        GetComponent<Rigidbody>().isKinematic = false;
+        if (state == Define.ObjectState.Lock) return;
+
+        RequestRPCChangeState(Define.ObjectState.Idle);
         outline.enabled = false;
         deltaY = 0f;
         SetCamera(null);
-        
     }
 
     public void OnOwnershipRequest(PhotonView targetView, Player requestingPlayer)
@@ -99,5 +116,57 @@ public class DraggableObject : MonoBehaviourPunCallbacks,IPunOwnershipCallbacks
     public void OnOwnershipTransferFailed(PhotonView targetView, Player senderOfFailedRequest)
     {
        
+    }
+    void OnKeyEvent()
+    {
+        if (state != Define.ObjectState.Pickked) return;
+
+        if (Input.GetKey(KeyCode.Q))
+        {
+            transform.Rotate(0f, -1f, 0f,Space.World);
+        }
+        else if (Input.GetKey(KeyCode.E))
+        {
+            transform.Rotate(0f, 1f, 0f, Space.World);
+        }
+    }
+
+    [PunRPC]
+    private void RPCChangeState(Define.ObjectState newState)
+    {
+        switch (newState)
+        {
+            case Define.ObjectState.Idle:
+                GetComponent<Rigidbody>().isKinematic = false;
+                break;
+            case Define.ObjectState.Pickked:
+                GetComponent<Rigidbody>().isKinematic = true;
+                break;
+            case Define.ObjectState.Lock:
+                GetComponent<Rigidbody>().isKinematic = true;
+                break;
+            default:
+                break;
+        }
+        state = newState;
+
+        //Debug.Log($"{photonView.InstantiationId} is ChageState To {newState}");
+    }
+    public void OnControlPanel()
+    {
+        if (Managers.UI.IsExistPopup<ObjectControl_Popup>())
+        {
+            Managers.UI.ClosePopupUI<ObjectControl_Popup>();
+        }
+        else
+        {
+            Managers.UI.ShowPopupUI<ObjectControl_Popup>().SetObject(this, targetCamera);   
+        }
+        
+    }
+
+    public void RequestRPCChangeState(Define.ObjectState newState)
+    {
+        photonView.RPC("RPCChangeState", RpcTarget.All, newState);
     }
 }

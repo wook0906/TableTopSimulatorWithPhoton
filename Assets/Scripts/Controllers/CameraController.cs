@@ -135,6 +135,13 @@ public class CameraController : MonoBehaviourPunCallbacks
             case Define.MouseEvent.RightPointerUp:
                 break;
             case Define.MouseEvent.RightClick:
+				if (!curTargetingObj) return;
+				
+				DraggableObject obj = curTargetingObj.GetComponent<DraggableObject>();
+				if (obj)
+				{
+					obj.OnControlPanel();
+				}
                 break;
             default:
                 break;

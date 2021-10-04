@@ -13,4 +13,5 @@ public class UIPopup : UIBase
     {
         Managers.UI.ClosePopupUI(this);
     }
+
 }

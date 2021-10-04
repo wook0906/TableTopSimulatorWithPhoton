@@ -4,6 +4,12 @@ using UnityEngine;
 
 public class Define
 {
+    public enum ObjectState
+    {
+        Idle,
+        Pickked,
+        Lock
+    }
     public enum WorldObject
     {
         Unknown,

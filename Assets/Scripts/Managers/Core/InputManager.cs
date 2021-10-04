@@ -76,10 +76,6 @@ public class InputManager
                 _rightKeepPressedTime = 0f;
             }
         }
-        else
-        {
-            Debug.Log("¾ø´Â°É?");
-        }
     }
 
     public void Clear()
