@@ -25,6 +25,7 @@ public class Managers : MonoBehaviour
     SceneManagerEx scene = new SceneManagerEx();
     SoundManager sound = new SoundManager();
     UIManager ui = new UIManager();
+    PhotonRPCManager rpc = new PhotonRPCManager();
 
     //public static DataManager Data { get { return S.data; } }
     public static InputManager Input { get { return S.input; } }
@@ -33,6 +34,7 @@ public class Managers : MonoBehaviour
     public static SceneManagerEx Scene { get { return S.scene; } }
     public static SoundManager Sound { get { return S.sound; } }
     public static UIManager UI { get { return S.ui; } }
+    public static PhotonRPCManager RPC { get { return S.rpc; } }
     #endregion
 
     static void Init()

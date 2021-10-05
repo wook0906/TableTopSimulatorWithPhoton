@@ -85,13 +85,7 @@ public class PlayerController : MonoBehaviourPunCallbacks
     {
         if (Input.GetKeyDown(KeyCode.T))
         {
-            photonView.RPC("RPCCreateObject", RpcTarget.MasterClient);
+            Managers.RPC.CreateObject();
         }
-    }
-
-    [PunRPC]
-    private void RPCCreateObject()
-    {
-        PhotonNetwork.InstantiateRoomObject("Prob3", new Vector3(Random.Range(0, 10), Random.Range(0, 10), Random.Range(0, 10)), Quaternion.identity);
     }
 }

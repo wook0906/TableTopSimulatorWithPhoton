@@ -23,6 +23,24 @@ public class DraggableObject : MonoBehaviourPunCallbacks,IPunOwnershipCallbacks
     public Define.ObjectState State
     {
         get { return state; }
+        set 
+        { 
+            state = value;
+            switch (state)
+            {
+                case Define.ObjectState.Idle:
+                    GetComponent<Rigidbody>().isKinematic = false;
+                    break;
+                case Define.ObjectState.Pickked:
+                    GetComponent<Rigidbody>().isKinematic = true;
+                    break;
+                case Define.ObjectState.Lock:
+                    GetComponent<Rigidbody>().isKinematic = true;
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     private void Start()
@@ -46,7 +64,7 @@ public class DraggableObject : MonoBehaviourPunCallbacks,IPunOwnershipCallbacks
         if (state == Define.ObjectState.Pickked || 
             state == Define.ObjectState.Lock) return;
         base.photonView.RequestOwnership();
-        RequestRPCChangeState(Define.ObjectState.Pickked);
+        Managers.RPC.RequestRPCChangeState(this,Define.ObjectState.Pickked);
 
         startPos = transform.position;
         dist = targetCamera.WorldToScreenPoint(transform.position);
@@ -95,7 +113,7 @@ public class DraggableObject : MonoBehaviourPunCallbacks,IPunOwnershipCallbacks
         if (state == Define.ObjectState.Lock) return;
         if (state == Define.ObjectState.Pickked && photonView.Owner.IsLocal)
         {
-            RequestRPCChangeState(Define.ObjectState.Idle);
+            Managers.RPC.RequestRPCChangeState(this,Define.ObjectState.Idle);
             outline.enabled = false;
             deltaY = 0f;
             SetCamera(null);
@@ -133,27 +151,6 @@ public class DraggableObject : MonoBehaviourPunCallbacks,IPunOwnershipCallbacks
         }
     }
 
-    [PunRPC]
-    private void RPCChangeState(Define.ObjectState newState)
-    {
-        switch (newState)
-        {
-            case Define.ObjectState.Idle:
-                GetComponent<Rigidbody>().isKinematic = false;
-                break;
-            case Define.ObjectState.Pickked:
-                GetComponent<Rigidbody>().isKinematic = true;
-                break;
-            case Define.ObjectState.Lock:
-                GetComponent<Rigidbody>().isKinematic = true;
-                break;
-            default:
-                break;
-        }
-        state = newState;
-
-        //Debug.Log($"{photonView.InstantiationId} is ChageState To {newState}");
-    }
     public void OnControlPanel()
     {
         if (Managers.UI.IsExistPopup<ObjectControl_Popup>())
@@ -169,6 +166,13 @@ public class DraggableObject : MonoBehaviourPunCallbacks,IPunOwnershipCallbacks
 
     public void RequestRPCChangeState(Define.ObjectState newState)
     {
-        photonView.RPC("RPCChangeState", RpcTarget.All, newState);
+        Managers.RPC.RequestRPCChangeState(this, newState);
+    }
+
+
+    [PunRPC]
+    void ChangeState(Define.ObjectState newState)
+    {
+        State = newState;
     }
 }

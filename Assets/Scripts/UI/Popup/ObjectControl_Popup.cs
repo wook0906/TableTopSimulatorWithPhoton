@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Photon.Pun;
 
 public class ObjectControl_Popup : UIPopup
 {
@@ -17,6 +18,7 @@ public class ObjectControl_Popup : UIPopup
     enum Buttons
     {
         Lock_Button,
+        Delete_Button,
         Close_Button,
     }
     enum Texts
@@ -36,10 +38,16 @@ public class ObjectControl_Popup : UIPopup
         Get<Button>((int)Buttons.Lock_Button).onClick.AddListener(new UnityEngine.Events.UnityAction(() =>
         {
             OnClickLockButton();
+            Managers.UI.ClosePopupUI();
         }));
         Get<Button>((int)Buttons.Close_Button).onClick.AddListener(new UnityEngine.Events.UnityAction(() =>
         {
             Managers.UI.ClosePopupUI(this);
+        }));
+        Get<Button>((int)Buttons.Delete_Button).onClick.AddListener(new UnityEngine.Events.UnityAction(() =>
+        {
+            OnClickDeleteButton();
+            Managers.UI.ClosePopupUI();
         }));
 
         panel = Get<GameObject>((int)GameObjects.GridPanel);
@@ -68,13 +76,19 @@ public class ObjectControl_Popup : UIPopup
     {
         if (obj.State != Define.ObjectState.Lock)
         {
-            obj.RequestRPCChangeState(Define.ObjectState.Lock);
+            Managers.RPC.RequestRPCChangeState(obj,Define.ObjectState.Lock);
             lockText.text = "UnLock";
         }
         else
         {
-            obj.RequestRPCChangeState(Define.ObjectState.Idle);
+            Managers.RPC.RequestRPCChangeState(obj,Define.ObjectState.Idle);
             lockText.text = "Lock";
         }
     }
+    void OnClickDeleteButton()
+    {
+        if (obj.State == Define.ObjectState.Lock) return;
+        PhotonNetwork.Destroy(obj.gameObject);
+    }
+    
 }
