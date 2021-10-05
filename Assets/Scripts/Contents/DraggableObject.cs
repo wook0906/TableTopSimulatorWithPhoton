@@ -93,11 +93,13 @@ public class DraggableObject : MonoBehaviourPunCallbacks,IPunOwnershipCallbacks
     private void OnMouseUp()
     {
         if (state == Define.ObjectState.Lock) return;
-
-        RequestRPCChangeState(Define.ObjectState.Idle);
-        outline.enabled = false;
-        deltaY = 0f;
-        SetCamera(null);
+        if (state == Define.ObjectState.Pickked && photonView.Owner.IsLocal)
+        {
+            RequestRPCChangeState(Define.ObjectState.Idle);
+            outline.enabled = false;
+            deltaY = 0f;
+            SetCamera(null);
+        }
     }
 
     public void OnOwnershipRequest(PhotonView targetView, Player requestingPlayer)
